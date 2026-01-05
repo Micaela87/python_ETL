@@ -1,0 +1,41 @@
+services:
+  etl:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: etl
+    container_name: etl
+    
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/db
+    restart: unless-stopped
+
+  rabbitmq:
+    # Use the management image to include the web UI
+    image: rabbitmq:3-management
+    ports:
+      # AMQP protocol port
+      - "5672:5672"
+      # Management UI port
+      - "15672:15672"
+    environment:
+      # Set custom default username and password (for non-production use)
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+      # Set a custom default virtual host
+      RABBITMQ_DEFAULT_VHOST: /
+    volumes:
+      # Persist data and logs (optional, recommended for production)
+      - 'rabbitmq_data:/var/lib/rabbitmq/'
+      - 'rabbitmq_log:/var/log/rabbitmq'
+
+volumes:
+  mongodb-data:
+    driver: local
+  rabbitmq_data:
+  rabbitmq_log:
