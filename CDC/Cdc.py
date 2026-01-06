@@ -1,16 +1,19 @@
+import datetime
 import logging
-from pymongo import MongoClient
-from pymongo.errors import PyMongoError
+import pymongo
+from CDC.RabbitMQ.RabbitMQService import RabbitMQService
 from Db.Schemas.Event import Event
 
 class Cdc():
 
-    client: MongoClient = None
+    client = None
     db = None
+    rabbitmq_service = None
 
     def __init__(self, client):
         self.client = client
-        self.db = client["dev"]
+        self.db = client["test"]
+        self.rabbitmq_service = RabbitMQService()
 
     def track_collection_changes(self, collection_name):
         try: 
@@ -18,10 +21,11 @@ class Cdc():
             collection = self.db[collection_name]
             with collection.watch() as stream:
                 logging.info(f"Watching collection '{collection_name}' for changes...")
+                self.rabbitmq_service.create_queue()
                 for change in stream:
                     logging.info(f"Change detected: Operation Type: {change['operationType']}")
                     self.handle_collection_changes(change)
-        except PyMongoError as e:
+        except pymongo.errors.PyMongoError as e:
             if resume_token is None:
                 logging.error(f"An unrecoverable error occurred: {e}")
             else:
@@ -36,23 +40,44 @@ class Cdc():
             if self.client:
                 self.client.close()
 
-    def handle_collection_changes(change):
+    def handle_collection_changes(self, change):
         event = Event()
         match change['operationType']:
             case "insert":
-                logging.info(f"{change}")
-                return change
-                # event.name: change['operationType']
-                # event.owner: Required[str]
-                # event.action: NotRequired[str]
-                # event.callback: NotRequired[str]
-                # event.processed: Required[bool]
-                # event.date: Required[datetime]
-                # event.version: Required[int]
-                # event.createdAt: Required[datetime]
+                event["name"] = change['operationType']
+                event["owner"] = change["documentKey"]["_id"]
+                event["action"] = ""
+                event["callback"] = ""
+                event["processed"] = False
+                event["date"] = change["wallTime"]
+                event["version"] = 1
+                event["createdAt"] = datetime.datetime.now()
+
+                self.db.events.insert_one(event)
+                self.rabbitmq_service.send_massage(change['operationType'])
+
             case 'update':
-                logging.info(f"{change}")
-                return change
+                event["name"] = change['operationType']
+                event["owner"] = change["documentKey"]["_id"]
+                event["action"] = ""
+                event["callback"] = ""
+                event["processed"] = False
+                event["date"] = change["wallTime"]
+                event["version"] = 1
+                event["createdAt"] = datetime.datetime.now()
+
+                self.db.events.insert_one(event)
+                self.rabbitmq_service.send_massage(change['operationType'])
+
             case 'delete':
-                logging.info(f"{change}")
-                return change
+                event["name"] = change['operationType']
+                event["owner"] = change["documentKey"]["_id"]
+                event["action"] = ""
+                event["callback"] = ""
+                event["processed"] = False
+                event["date"] = change["wallTime"]
+                event["version"] = 1
+                event["createdAt"] = datetime.datetime.now()
+
+                self.db.events.insert_one(event)
+                self.rabbitmq_service.send_massage(change['operationType'])
