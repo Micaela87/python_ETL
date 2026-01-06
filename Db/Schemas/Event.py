@@ -1,15 +1,12 @@
-from typing import NotRequired, Required, TypedDict
+from typing import TypedDict
 from datetime import datetime
-from db import db
-
-collection = db["events"]
 
 class Event(TypedDict):
-    name: Required[str]
-    owner: Required[str]
-    action: NotRequired[str]
-    callback: NotRequired[str]
-    processed: Required[bool]
-    date: Required[datetime]
-    version: Required[int]
-    createdAt: Required[datetime]
+    name: str
+    owner: str
+    action: str
+    callback: str
+    processed: bool
+    date: datetime
+    version: int
+    createdAt: datetime

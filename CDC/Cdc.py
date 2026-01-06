@@ -1,8 +1,16 @@
 import logging
+from pymongo import MongoClient
 from pymongo.errors import PyMongoError
 from Db.Schemas.Event import Event
 
 class Cdc():
+
+    client: MongoClient = None
+    db = None
+
+    def __init__(self, client):
+        self.client = client
+        self.db = client["dev"]
 
     def track_collection_changes(self, collection_name):
         try: 

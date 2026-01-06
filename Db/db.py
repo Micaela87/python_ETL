@@ -19,11 +19,12 @@ class DbConfig():
         self.client = MongoClient(self.connection_string)
         self.db = self.client["dev"]
 
+
     def test_connection(self):
         try:
+            self.client = MongoClient(self.connection_string)
             self.client.admin.command('ping')
             logging.info("MongoDB server is reachable and connected!")
-            self.client.close()
             return True
         except ConnectionFailure as e:
             logging.error(f"{e}")
