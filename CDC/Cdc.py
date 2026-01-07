@@ -81,3 +81,5 @@ class Cdc():
 
                 self.db.events.insert_one(event)
                 self.rabbitmq_service.send_massage(change['operationType'])
+
+        self.rabbitmq_service.get_message(self.client)

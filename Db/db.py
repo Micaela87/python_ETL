@@ -16,7 +16,7 @@ class DbConfig():
 
     def connect(self):
         self.client = pymongo.MongoClient(self.connection_string)
-        self.db = self.client["dev"]
+        self.db = self.client["test"]
 
 
     def test_connection(self):
