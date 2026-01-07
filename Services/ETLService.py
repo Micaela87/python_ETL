@@ -3,8 +3,6 @@ import logging
 import dotenv
 from pyspark.sql import SparkSession
 
-from Db.db import DbConfig
-
 dotenv.load_dotenv()
 
 class ETLService():
